@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rastreador GPS de Perritos</title>
+  <!-- Incluye Leaflet.js sin los atributos "integrity" y "crossorigin" -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body {
+      background-color: rgb(184, 226, 185);
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    #map {
+      height: 500px;
+      width: 100%;
+      margin: 20px auto;
+      border: 4px solid rgb(174, 99, 163);
+    }
+    footer {
+      background-color: rgb(11, 11, 11);
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    }
+    footer a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align: center; font-weight: bold; font-family: 'Times New Roman', Times, serif;">
+    Rastreador GPS de Perritos
+  </h1>
+  <h1 style="text-align: center; font-weight: bold; font-family: 'Times New Roman', Times, serif;">
+    LUARIA
+  </h1>
+
+  <div id="map"></div>
+  <!-- Footer -->
+  <footer>
+    © 2025 LUARIA : Rastreador GPS de Perritos - Creado por 
+    <a href="https://tuportafolio.com" target="_blank">Sara y Rocio</a>
+  </footer>
+  <!-- Script de Leaflet.js -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Inicializar el mapa
+    const map = L.map("map").setView([-16.5453, -68.18366], 15);
+
+    // Añadir la capa de mapa base desde OpenStreetMap
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '© OpenStreetMap contributors',
+    }).addTo(map);
+
+    // Crear un marcador inicial
+    const marker = L.marker([-16.5453, -68.18366]).addTo(map);
+    marker.bindPopup("Latitud: -16.5453, Longitud: -68.18366").openPopup();
+
+    // Actualizar las coordenadas en tiempo real desde Firebase
+    const databaseURL = "https://gps-perritos-default-rtdb.firebaseio.com/";
+
+    async function updateMarker() {
+      try {
+        const response = await fetch(`${databaseURL}/gps.json`);
+        const data = await response.json();
+
+        if (data && data.latitude && data.longitude) {
+          const { latitude, longitude } = data;
+
+          // Actualizar la posición del marcador
+          marker.setLatLng([latitude, longitude]);
+          marker.bindPopup(`Latitud: ${latitude}, Longitud: ${longitude}`).openPopup();
+
+          // Centrar el mapa en la nueva posición
+          map.setView([latitude, longitude], 15);
+        }
+      } catch (error) {
+        console.error("Error al obtener datos de Firebase:", error);
+      }
+    }
+
+    // Llamar a la función cada 5 segundos para actualizar el marcador
+    setInterval(updateMarker, 5000);
+  </script>
+</body>
+</html>
